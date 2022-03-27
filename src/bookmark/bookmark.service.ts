@@ -17,14 +17,23 @@ export class BookmarkService {
     });
   }
 
-  getBookmarkById(userId: number, bookmarkId: number) {
+  async getBookmarkById(userId: number, bookmarkId: number) {
 
-    return this.prisma.bookmark.findFirst({
+    const bookmark = await this.prisma.bookmark.findUnique({
       where: {
-        userId,
         id: bookmarkId,
       }
     });
+
+    if (!bookmark) {
+      throw new ForbiddenException('Not found');
+    }
+
+    if (bookmark.userId !== userId) {
+      throw new ForbiddenException('Access to resource denied');
+    }
+
+    return bookmark;
   }
 
   async createBookmark(userId: number, dto: CreateBookmarkDto) {
